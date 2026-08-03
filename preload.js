@@ -6,7 +6,7 @@ const cp = require('node:child_process');
 
 const originalResolveFilename = Module._resolveFilename;
 Module._resolveFilename = function (request, parent, isMain, options) {
-    if (request === 'cypress' || request.startsWith('cypress/')) {
+    if (request === 'cypress' || request.startsWith('cypress/') || request === 'cypress-mochawesome-reporter' || request.startsWith('cypress-mochawesome-reporter/')) {
         const globalCypressPath = process.env.CYPRESS_VERSION_MANAGER_GLOBAL_CYPRESS_PATH;
         const newRequest = path.resolve(globalCypressPath, request);
 
@@ -36,6 +36,10 @@ Module._load = function (request, parent, isMain) {
             loadedModule.defineConfig = function (userConfig = {}) {
                 const { e2e = {}, ...restConfig } = userConfig;
                 const originalSetupNodeEvents = e2e.setupNodeEvents;
+
+                if (restConfig.reporter === 'cypress-mochawesome-reporter') {
+                    restConfig.reporter = path.resolve(globalCypressPath, 'cypress-mochawesome-reporter');
+                }
 
                 return originalDefineConfig({
                     ...restConfig,
