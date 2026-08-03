@@ -37,7 +37,7 @@ function resolveCypressBinary(version, globalModulesPath, packageName) {
       'node_modules/cypress-ntlm-auth/dist/launchers/cypress.ntlm.js',
     );
   } else {
-    console.error('  Not implemented!');
+    console.error('Not implemented!');
     process.exit(1);
   }
 
@@ -63,7 +63,7 @@ function get_jsconfig(cypressTypeRoot) {
       throw new Error;
     }
   } catch(_) {
-    console.error('  Bad jsconfig.json file');
+    console.error('Bad jsconfig.json file');
     process.exit(1);
   }
 
@@ -98,7 +98,7 @@ module.exports.main = function(packageName) {
   let globalModulesPath = process.env.npm_config_global_prefix;
   if (!globalModulesPath) {
     console.error('Error: Could not determine global npm modules path.');
-    console.error('Ensure npx is being used.');
+    console.error('  Ensure npx is being used.');
     process.exit(1);
   }
   globalModulesPath = path.resolve(globalModulesPath, 'node_modules');
