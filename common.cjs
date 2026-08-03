@@ -86,6 +86,14 @@ function get_jsconfig(cypressTypeRoot) {
 }
 
 module.exports.main = function(packageName) {
+  let globalModulesPath = process.env.npm_config_global_prefix;
+  if (!globalModulesPath) {
+    console.error('Error: Could not determine global npm modules path.');
+    console.error('  Ensure npx is being used.');
+    process.exit(1);
+  }
+  globalModulesPath = path.resolve(globalModulesPath, 'node_modules');
+  
   const version = findVersionFile();
   if (!version) {
     console.error(`Error: No ${VERSION_FILE} file found in current directory or ancestors.`);
@@ -94,14 +102,6 @@ module.exports.main = function(packageName) {
     console.error(`  echo "13.16.0" > ${VERSION_FILE}`);
     process.exit(1);
   }
-
-  let globalModulesPath = process.env.npm_config_global_prefix;
-  if (!globalModulesPath) {
-    console.error('Error: Could not determine global npm modules path.');
-    console.error('  Ensure npx is being used.');
-    process.exit(1);
-  }
-  globalModulesPath = path.resolve(globalModulesPath, 'node_modules');
 
   const cypressBinary = resolveCypressBinary(version, globalModulesPath, packageName);
   if (!cypressBinary) {
