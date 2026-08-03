@@ -141,7 +141,7 @@ module.exports.main = function(packageName) {
     console.error(`Error: Cypress ${version} not found at "${missingCypressVersionPath}"`);
     console.error('');
     console.error('Install it with:');
-    console.error(`  npm install cypress@${version} cypress-ntlm-auth @cypress/webpack-preprocessor --prefix "${missingCypressVersionPath}" --save-exact --ignore-scripts`);
+    console.error(`  npm install cypress@${version} cypress-ntlm-auth cypress-mochawesome-reporter @cypress/webpack-preprocessor --prefix "${missingCypressVersionPath}" --save-exact --ignore-scripts`);
     console.error('  npx cypress install');
     process.exit(1);
   }
