@@ -1,0 +1,8 @@
+{
+  "name": "@alexsch01/cypress-version-manager",
+  "version": "1.0.0",
+  "bin": {
+    "cypress": "./bin/cypress",
+    "cypress-ntlm": "./bin/cypress-ntlm"
+  }
+}
