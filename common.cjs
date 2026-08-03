@@ -105,7 +105,7 @@ function get_jsconfig(cypressTypeRoot) {
       compilerOptions: {
         ...jsconfig_compilerOptions,
         typeRoots: [cypressTypeRoot],
-        types: ['cypress', 'cypress-ntlm-auth']
+        types: []
       }
     }, null, 4),
     originalJsConfig
