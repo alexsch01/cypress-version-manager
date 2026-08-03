@@ -20,22 +20,6 @@ function findVersionFile() {
   return null;
 }
 
-function getGlobalNodeModulesPath() {
-  try {
-    const npmRoot = execSync('npm root -g', {
-      shell: true,
-      encoding: 'utf8',
-    }).trim();
-
-    return npmRoot;
-  } catch {
-    console.error('  npm root -g failed');
-    process.exit(1);
-  }
-
-  return null;
-}
-
 function resolveCypressBinary(version, globalModulesPath, packageName) {
   const versionedPackageName = `cypress-${version}`;
   let binaryPath;
@@ -111,12 +95,13 @@ module.exports.main = function(packageName) {
     process.exit(1);
   }
 
-  const globalModulesPath = path.resolve(process.env.npm_config_global_prefix, 'node_modules');
+  let globalModulesPath = process.env.npm_config_global_prefix;
   if (!globalModulesPath) {
     console.error('Error: Could not determine global npm modules path.');
     console.error('Ensure npx is being used.');
     process.exit(1);
   }
+  globalModulesPath = path.resolve(globalModulesPath, 'node_modules');
 
   const cypressBinary = resolveCypressBinary(version, globalModulesPath, packageName);
   if (!cypressBinary) {
