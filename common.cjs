@@ -112,6 +112,11 @@ module.exports.main = function(packageName) {
   }
 
   const globalModulesPath = path.resolve(process.env.npm_config_global_prefix, 'node_modules');
+  if (!globalModulesPath) {
+    console.error('Error: Could not determine global npm modules path.');
+    console.error('Ensure npx is being used.');
+    process.exit(1);
+  }
 
   const cypressBinary = resolveCypressBinary(version, globalModulesPath, packageName);
   if (!cypressBinary) {
