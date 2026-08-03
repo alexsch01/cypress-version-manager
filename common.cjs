@@ -6,26 +6,15 @@ const { execSync, spawn } = require('node:child_process');
 
 const VERSION_FILE = '.cypress-version';
 
-function findVersionFile(startDir) {
-  let currentDir = startDir;
+function findVersionFile() {
+  const versionPath = path.join(process.cwd(), VERSION_FILE);
 
-  while (true) {
-    const versionPath = path.join(currentDir, VERSION_FILE);
-
-    if (fs.existsSync(versionPath)) {
-      let version = fs.readFileSync(versionPath, 'utf8').trim();
-      if (version.startsWith('"') && version.endsWith('"')) {
-        version = version.slice(1, version.length-1);
-      }
-      if (version === '') return null;
-      return { version, projectRoot: currentDir };
+  if (fs.existsSync(versionPath)) {
+    let version = fs.readFileSync(versionPath, 'utf8').trim();
+    if (version.startsWith('"') && version.endsWith('"')) {
+      version = version.slice(1, version.length-1);
     }
-
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      break;
-    }
-    currentDir = parentDir;
+    return version;
   }
 
   return null;
@@ -113,10 +102,8 @@ function get_jsconfig(cypressTypeRoot) {
 }
 
 module.exports.main = function(packageName) {
-  const cwd = process.cwd();
-  const versionInfo = findVersionFile(cwd);
-
-  if (!versionInfo) {
+  const version = findVersionFile();
+  if (!version) {
     console.error(`Error: No ${VERSION_FILE} file found in current directory or ancestors.`);
     console.error('');
     console.error(`Create a ${VERSION_FILE} file with the desired version:`);
@@ -124,9 +111,7 @@ module.exports.main = function(packageName) {
     process.exit(1);
   }
 
-  const { version, projectRoot } = versionInfo;
   const globalModulesPath = getGlobalNodeModulesPath();
-
   if (!globalModulesPath) {
     console.error('Error: Could not determine global npm modules path.');
     console.error('Ensure npm is installed and accessible.');
@@ -134,7 +119,6 @@ module.exports.main = function(packageName) {
   }
 
   const cypressBinary = resolveCypressBinary(version, globalModulesPath, packageName);
-
   if (!cypressBinary) {
     const missingCypressVersionPath = path.resolve(globalModulesPath, `cypress-${version}`);
 
@@ -168,7 +152,7 @@ module.exports.main = function(packageName) {
 
   const child = spawn('node', args, {
     stdio: 'inherit',
-    cwd: projectRoot,
+    cwd: process.cwd(),
     env: {
       ...process.env,
       CYPRESS_VERSION_MANAGER_GLOBAL_CYPRESS_PATH: globalCypressPath,
