@@ -2,7 +2,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const { execFileSync, spawn } = require('node:child_process');
+const { execSync, spawn } = require('node:child_process');
 
 const VERSION_FILE = '.cypress-version';
 
@@ -13,7 +13,11 @@ function findVersionFile(startDir) {
     const versionPath = path.join(currentDir, VERSION_FILE);
 
     if (fs.existsSync(versionPath)) {
-      const version = fs.readFileSync(versionPath, 'utf8').trim();
+      let version = fs.readFileSync(versionPath, 'utf8').trim();
+      if (version.startsWith('"') && version.endsWith('"')) {
+        version = version.slice(1, version.length-1);
+      }
+      if (version === '') return null;
       return { version, projectRoot: currentDir };
     }
 
@@ -29,9 +33,9 @@ function findVersionFile(startDir) {
 
 function getGlobalNodeModulesPath() {
   try {
-    const npmRoot = execFileSync('npm', ['root', '-g'], {
+    const npmRoot = execSync('npm root -g', {
+      shell: true,
       encoding: 'utf8',
-      timeout: 5000
     }).trim();
 
     return npmRoot;
@@ -45,13 +49,24 @@ function getGlobalNodeModulesPath() {
 
 function resolveCypressBinary(version, globalModulesPath, packageName) {
   const versionedPackageName = `cypress-${version}`;
-  const binaryPath = path.join(
-    globalModulesPath,
-    versionedPackageName,
-    'node_modules',
-    '.bin',
-    packageName,
-  );
+  let binaryPath;
+
+  if (packageName === 'cypress') {
+    binaryPath = path.join(
+      globalModulesPath,
+      versionedPackageName,
+      'node_modules/cypress/bin/cypress',
+    );
+  } else if (packageName === 'cypress-ntlm') {
+    binaryPath = path.join(
+      globalModulesPath,
+      versionedPackageName,
+      'node_modules/cypress-ntlm-auth/dist/launchers/cypress.ntlm.js',
+    );
+  } else {
+    console.error('  Not implemented!');
+    process.exit(1);
+  }
 
   if (fs.existsSync(binaryPath)) {
     return binaryPath;
@@ -121,15 +136,17 @@ module.exports.main = function(packageName) {
   const cypressBinary = resolveCypressBinary(version, globalModulesPath, packageName);
 
   if (!cypressBinary) {
-    console.error(`Error: Cypress ${version} not found at ${globalModulesPath}/cypress-${version}`);
+    const missingCypressVersionPath = path.resolve(globalModulesPath, `cypress-${version}`);
+
+    console.error(`Error: Cypress ${version} not found at "${missingCypressVersionPath}"`);
     console.error('');
     console.error('Install it with:');
-    console.error(`  npm install cypress@${version} cypress-ntlm-auth @cypress/webpack-preprocessor --prefix "${path.resolve(globalModulesPath, `cypress-${version}`)}" --save-exact --ignore-scripts`);
+    console.error(`  npm install cypress@${version} cypress-ntlm-auth @cypress/webpack-preprocessor --prefix "${missingCypressVersionPath}" --save-exact --ignore-scripts`);
     console.error('  npx cypress install');
     process.exit(1);
   }
 
-  const globalCypressPath = path.resolve(cypressBinary, '../..');
+  const globalCypressPath = path.resolve(globalModulesPath, `cypress-${version}`, 'node_modules');
 
   const [jsconfig, originalJsConfig] = get_jsconfig(globalCypressPath);
   if (jsconfig !== originalJsConfig) {
@@ -142,13 +159,20 @@ module.exports.main = function(packageName) {
     args.push('--project', '.');
   }
 
-  const child = spawn(cypressBinary, args, {
+  args.unshift(cypressBinary);
+
+  let preloadPath = path.resolve(__dirname, 'preload.js');
+  if (process.platform === 'win32') {
+    preloadPath = preloadPath.replaceAll("\\", "\\\\");
+  }
+
+  const child = spawn('node', args, {
     stdio: 'inherit',
     cwd: projectRoot,
     env: {
       ...process.env,
       CYPRESS_VERSION_MANAGER_GLOBAL_CYPRESS_PATH: globalCypressPath,
-      NODE_OPTIONS: `--require "${path.resolve(__dirname, 'preload.js')}" ${process.env.NODE_OPTIONS || ''}`,
+      NODE_OPTIONS: `--require "${preloadPath}" ${process.env.NODE_OPTIONS || ''}`,
     },
   });
 
