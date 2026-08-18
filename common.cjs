@@ -67,7 +67,7 @@ function get_jsconfig(cypressTypeRoot) {
     process.exit(1);
   }
 
-  const jsconfig_compilerOptions = jsconfig.compilerOptions;
+  let jsconfig_compilerOptions = jsconfig.compilerOptions;
   if (typeof jsconfig_compilerOptions !== 'object') {
     jsconfig_compilerOptions = {};
   }
