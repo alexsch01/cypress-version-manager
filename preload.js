@@ -3,6 +3,7 @@
 const Module = require('node:module');
 const path = require('node:path');
 const cp = require('node:child_process');
+const fs = require('node:fs');
 
 const originalResolveFilename = Module._resolveFilename;
 Module._resolveFilename = function (request, parent, isMain, options) {
@@ -22,6 +23,13 @@ Module._resolveFilename = function (request, parent, isMain, options) {
 
 const originalLoad = Module._load;
 Module._load = function (request, parent, isMain) {
+    if (request.endsWith('cypress.config.js')) {
+        const cypressConfigFile = fs.readFileSync(request, 'utf8');
+        if (!cypressConfigFile.includes('module.exports = defineConfig({')) {
+            throw new Error('Need to use defineConfig in cypress.config.js');
+        }
+    }
+
     const loadedModule = originalLoad.apply(this, arguments);
 
     // If the module being required is the root 'cypress' package
