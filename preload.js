@@ -64,7 +64,7 @@ Module._load = function (request, parent, isMain) {
                 }
             }
         }
-    }
+    };
 
     return loadedModule;
 };
