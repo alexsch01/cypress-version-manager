@@ -30,7 +30,7 @@ Module._load = function (request, parent, isMain) {
 
         const wp = require(newWebpackPath);
 
-        const { e2e = {}, ...restConfig } = userConfig;
+        const { e2e = {}, ...restConfig } = loadedModule;
         const originalSetupNodeEvents = e2e.setupNodeEvents;
 
         if (restConfig.reporter === 'cypress-mochawesome-reporter') {
