@@ -99,7 +99,7 @@ module.exports.main = function(packageName) {
     console.error(`Error: No ${VERSION_FILE} file found in current directory or ancestors.`);
     console.error('');
     console.error(`Create a ${VERSION_FILE} file with the desired version:`);
-    console.error(`  echo "13.16.0" > ${VERSION_FILE}`);
+    console.error(`  echo "15.10.0" > ${VERSION_FILE}`);
     process.exit(1);
   }
 
